@@ -1,4 +1,4 @@
-# SmartLift AI — Predictive Elevator Dispatch & Biometric Security System
+# SmartLift AI — Predictive Elevator Dispatch using Computer Vision
 
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![YOLOv8](https://img.shields.io/badge/AI-YOLOv8%20%7C%20OpenCV-00FFFF?style=flat&logo=opencv)](https://ultralytics.com)
