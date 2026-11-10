@@ -282,12 +282,4 @@ npm run dev
 - **Frontend & Simulation:** Vanilla JavaScript (ES Modules), Vite, HTML5 Canvas / CSS3 3D Isometric View.
 - **Embedded & IoT Hardware:** ESP32 Dev Module (Tensilica Xtensa Dual-Core 32-bit), C++ / Arduino Framework, L293D H-Bridge, RC522 RFID (SPI), Optical Infrared Proximity Switches.
 
----
 
-## 👥 Authors & Acknowledgments
-
-- **Jianna Maria Joseph** (23BLC1197)
-- **K P Abhishek Sri Saai** (23BLC1292)
-- **Sreelakshmi Sajith** (23BLC1299)
-
-*Department of Electronics and Computer Engineering, Vellore Institute of Technology (VIT), Chennai.*
