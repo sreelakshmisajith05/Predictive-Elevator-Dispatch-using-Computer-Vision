@@ -1,0 +1,32 @@
+{
+  "69BDF306": {
+    "name": "Abhishek Sri Saai",
+    "authorized": true,
+    "access_floor": 0,
+    "fixed_destination": 2
+  },
+  "3EAF1AAA": {
+    "name": "Jianna Maria Joseph",
+    "authorized": true,
+    "access_floor": 0,
+    "fixed_destination": 2
+  },
+  "6E9818AA": {
+    "name": "Sreelakshmi Sajith",
+    "authorized": true,
+    "access_floor": 0,
+    "fixed_destination": 1
+  },
+  "12D56B06": {
+    "name": "Pournami M",
+    "authorized": true,
+    "access_floor": 0,
+    "fixed_destination": 3
+  },
+  "DEADBEEF": {
+    "name": "Unauthorized Tag (DEADBEEF)",
+    "authorized": false,
+    "access_floor": 0,
+    "fixed_destination": null
+  }
+}

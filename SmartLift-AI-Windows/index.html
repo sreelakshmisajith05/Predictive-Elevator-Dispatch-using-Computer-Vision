@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Predictive Elevator Dispatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-text">PREDICTIVE ELEVATOR DISPATCH</span>
+      </div>
+      <span class="system-tag" id="systemTag" style="display: none;"></span>
+    </div>
+
+    <!-- OPERATING MODE SWITCHER -->
+    <div class="mode-switcher-wrap">
+      <div class="mode-switcher" role="tablist">
+        <button id="btnModeSim" class="mode-btn active" type="button" title="Virtual 8-floor two-lift simulation (Lift A & B) with passenger queues, priority & dynamic safety">
+          <span class="mode-ico">💻</span> Software Simulation
+        </button>
+        <button id="btnModeHw" class="mode-btn" type="button" title="Physical prototype with ESP32, 4 IR sensors, L293 motor & RC522 RFID">
+          <span class="mode-ico">🔌</span> Hardware Prototype
+        </button>
+      </div>
+    </div>
+
+    <!-- TELEMETRY STATUS PILLS & ACTIONS -->
+    <div class="header-right">
+      <div class="telemetry-pills" style="display: none;">
+        <div id="pillHw" class="status-pill offline" title="ESP32 Serial status">
+          <span class="pill-dot"></span>
+          <span class="pill-label">ESP32: <strong id="pillHwText">COM7</strong></span>
+        </div>
+        <div id="pillCam" class="status-pill offline" title="Webcam YOLO detection">
+          <span class="pill-dot"></span>
+          <span class="pill-label">Camera: <strong id="pillCamText">OFF</strong></span>
+        </div>
+        <div id="pillRfid" class="status-pill ready" title="RC522 RFID security scanner">
+          <span class="pill-dot"></span>
+          <span class="pill-label">RFID: <strong id="pillRfidText">READY</strong></span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btnTheme" class="btn btn-small" type="button" style="display: none !important;">🌙 Dark</button>
+        <button id="btnStart" class="btn btn-primary btn-small" type="button">▶ Start</button>
+        <button id="btnPause" class="btn btn-small" type="button">⏸ Pause</button>
+        <button id="btnReset" class="btn btn-ghost btn-small" type="button">↻ Reset</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN THREE-COLUMN WORKSPACE -->
+  <div class="layout">
+    
+    <!-- LEFT COLUMN: PASSENGER MANAGEMENT & REAL-TIME CAMERA -->
+    <aside class="panel panel-left">
+      <!-- Section A: Simulation Passenger Creation -->
+      <div id="simPassengerSection" class="section-group">
+        <!-- Box 1: PASSENGER MANAGEMENT PALETTE BOX -->
+        <div class="panel-box">
+          <div class="panel-subtitle">
+            <span>PASSENGER MANAGEMENT</span>
+          </div>
+          <div class="icon-palette" id="iconPalette">
+            <div class="draggable" draggable="true" data-type="adult" data-weight="75">
+              <span class="ico">👨</span>
+              <span class="lbl">Adult</span>
+              <span class="w">75 kg</span>
+            </div>
+            <div class="draggable" draggable="true" data-type="child" data-weight="30">
+              <span class="ico">👦</span>
+              <span class="lbl">Child</span>
+              <span class="w">30 kg</span>
+            </div>
+            <div class="draggable" draggable="true" data-type="luggage" data-weight="15">
+              <span class="ico">🧳</span>
+              <span class="lbl">Luggage</span>
+              <span class="w">15 kg</span>
+            </div>
+            <div class="draggable" draggable="true" data-type="senior" data-weight="70">
+              <span class="ico">👴</span>
+              <span class="lbl">Senior Citizen</span>
+              <span class="w">70 kg</span>
+              <span class="prio-tag high">High Priority</span>
+            </div>
+            <div class="draggable" draggable="true" data-type="wheelchair" data-weight="80">
+              <span class="ico">♿</span>
+              <span class="lbl">Wheelchair User</span>
+              <span class="w">80 kg</span>
+              <span class="prio-tag">Priority</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Box 2: ACTIVE PASSENGERS BOX -->
+        <div class="panel-box">
+          <div class="panel-subtitle">
+            <span>ACTIVE PASSENGERS</span>
+            <span id="peopleCount" class="chip">0</span>
+          </div>
+          <div class="people-list" id="peopleList">
+            <span class="hint-sm">No active passengers.</span>
+          </div>
+        </div>
+
+        <!-- Simulation Verification Demos -->
+        <details class="demos">
+          <summary>Test Scenarios (A–G)</summary>
+          <div class="demo-grid">
+            <button class="btn btn-small" data-demo="A" title="Predictive load with luggage">A: Predictive Load</button>
+            <button class="btn btn-small" data-demo="B" title="Child vs Adult dynamic threshold">B: Child vs Adult</button>
+            <button class="btn btn-small" data-demo="C" title="Ghost call cancellation">C: Ghost Call</button>
+            <button class="btn btn-small" data-demo="D" title="Outside ghost call vs inside destination">D: Ghost + Inside</button>
+            <button class="btn btn-small" data-demo="E" title="Cabin destination without outside wait">E: Inside Dest</button>
+            <button class="btn btn-small" data-demo="F" title="Double press destination cancellation">F: Double-Press</button>
+            <button class="btn btn-small" data-demo="G" title="Capacity overload deferral">G: Deferred Pickup</button>
+          </div>
+        </details>
+      </div>
+
+      <!-- Section B: Live Camera Panel -->
+      <div class="camera-input">
+        <div class="panel-subtitle">
+          <span>LIVE CAMERA</span>
+          <span id="camStatus" class="chip offline">OFFLINE</span>
+        </div>
+        <input id="camUrl" type="hidden" value="ws://localhost:8000/ws/detect" />
+        <div class="cam-row" style="align-items: center; gap: 8px;">
+          <label for="camFloor" style="font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap;">Floor:</label>
+          <select id="camFloor" title="Select Floor" style="flex: 1;"></select>
+          <button id="btnCamera" type="button" class="btn btn-small btn-primary" style="white-space: nowrap;">Enable Camera</button>
+        </div>
+        <video id="camVideo" class="cam-video" autoplay muted playsinline></video>
+        <div class="cam-pending" id="camPending"></div>
+      </div>
+    </aside>
+
+    <!-- CENTER COLUMN: 3D-INSPIRED ELEVATOR BUILDING -->
+    <main class="building-wrap">
+      <div class="shaft-head">
+        <span id="activeModeBadge" style="display: none;"></span>
+        <span id="shaftRange" style="display: none;"></span>
+        <div class="shaft-specs" style="margin: 0 auto; text-align: center;">
+          <span>CAPACITY: <strong>800 kg</strong></span>
+        </div>
+      </div>
+
+      <!-- 3D ELEVATOR SHAFT VIEW -->
+      <div class="building" id="building">
+        <div class="shaft-guides">
+          <div class="guide-rail left"></div>
+          <div class="guide-rail center"></div>
+          <div class="guide-rail right"></div>
+        </div>
+
+        <!-- ELEVATOR CABIN A -->
+        <div class="elevator-cabin cabin-a" id="cabinA">
+          <div class="cabin-header" style="justify-content: center; text-align: center;">
+            <span class="cabin-name" style="margin: 0 auto; text-align: center;">A</span>
+            <span class="cabin-dir" id="cabinDirA" style="display: none !important;">● IDLE</span>
+          </div>
+          <div class="cabin-doors" id="cabinDoorsA">
+            <div class="door left"></div>
+            <div class="door right"></div>
+          </div>
+          <div class="cabin-inside" id="cabinInsideA"></div>
+          <div class="cabin-load-bar" id="cabinLoadBarA">
+            <span class="load-label">LOAD</span>
+            <span class="load-val" id="cabinLoadA">0 kg</span>
+          </div>
+        </div>
+
+        <!-- ELEVATOR CABIN B -->
+        <div class="elevator-cabin cabin-b" id="cabinB">
+          <div class="cabin-header" style="justify-content: center; text-align: center;">
+            <span class="cabin-name" style="margin: 0 auto; text-align: center;">B</span>
+            <span class="cabin-dir" id="cabinDirB" style="display: none !important;">● IDLE</span>
+          </div>
+          <div class="cabin-doors" id="cabinDoorsB">
+            <div class="door left"></div>
+            <div class="door right"></div>
+          </div>
+          <div class="cabin-inside" id="cabinInsideB"></div>
+          <div class="cabin-load-bar" id="cabinLoadBarB">
+            <span class="load-label">LOAD</span>
+            <span class="load-val" id="cabinLoadB">0 kg</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER STATUS STRIP (HIDDEN PER USER REQUEST) -->
+      <div class="building-footer" style="display: none;">
+        <span class="footer-left">CLOSED-LOOP POSITION FEEDBACK · INDEPENDENT TWO-LIFT ROUTING</span>
+        <span id="elevatorStateLabel">Lift A: Floor G · IDLE | Lift B: Floor G · IDLE</span>
+      </div>
+
+      <!-- INSIDE CABIN CONTROLS -->
+      <div class="cabin-controls">
+        <div class="cabin-ctl" id="cabinCtlA">
+          <div class="panel-subtitle">
+            <span>LIFT A DESTINATIONS</span>
+            <span class="hint-sm">Click passenger then destination</span>
+          </div>
+          <div class="floor-buttons" id="floorButtonsA"></div>
+        </div>
+        <div class="cabin-ctl" id="cabinCtlB" style="margin-top: 10px;">
+          <div class="panel-subtitle">
+            <span>LIFT B DESTINATIONS</span>
+            <span class="hint-sm">Click passenger then destination</span>
+          </div>
+          <div class="floor-buttons" id="floorButtonsB"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT COLUMN: STATUS, ROUTING INTELLIGENCE, HARDWARE & SECURITY -->
+    <aside class="panel panel-right">
+      
+      <!-- HARDWARE PROTOTYPE CONTROLLER PANEL -->
+      <div class="dash-card hw-card" id="hwPanel">
+        <div class="dash-title">
+          <span>ESP32 HARDWARE BRIDGE</span>
+          <span id="hwConnBadge" class="badge danger">DISCONNECTED</span>
+        </div>
+        <div class="hw-port-actions" style="display:flex; gap:8px;">
+          <button id="btnHwConnect" class="btn btn-xs btn-primary" type="button" style="flex:1; padding: 7px 10px;" title="Connect to ESP32 via serial">Connect ESP32</button>
+          <button id="btnHwDisconnect" class="btn btn-xs" type="button" style="display:none;" title="Closes port in backend so lift_interface.py can run in terminal">Release for lift_interface.py</button>
+        </div>
+      </div>
+
+      <!-- DYNAMIC THRESHOLD & PREDICTIVE SAFETY (DUAL LIFTS) -->
+      <div class="safety-card-wrap" id="safetyCard">
+        <div class="lift-status lift-a-card" style="margin-bottom: 8px;">
+          <div class="lift-name">
+            <span>LIFT A SAFETY</span>
+            <span class="badge" id="safetyA">SAFE</span>
+          </div>
+          <div class="lift-stats">
+            <span>Load <strong id="loadA">0 kg</strong></span>
+            <span>Threshold <strong id="threshA">750 kg</strong></span>
+            <span>Margin <strong id="marginA">750 kg</strong></span>
+          </div>
+        </div>
+        <div class="lift-status lift-b-card" id="safetyCardB">
+          <div class="lift-name">
+            <span>LIFT B SAFETY</span>
+            <span class="badge" id="safetyB">SAFE</span>
+          </div>
+          <div class="lift-stats">
+            <span>Load <strong id="loadB">0 kg</strong></span>
+            <span>Threshold <strong id="threshB">750 kg</strong></span>
+            <span>Margin <strong id="marginB">750 kg</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEXT PICKUP / PREDICTIVE LOAD EVALUATION -->
+      <div class="dash-card projected" id="projectedCard">
+        <div class="dash-title">PREDICTIVE BOARDING EVALUATION</div>
+        <div id="projEmpty" class="proj-empty">No pending pickup requests</div>
+        <div id="projContent" class="proj-content hidden">
+          <div class="kv highlight"><span>Expected Added Load</span><strong id="projAdded">—</strong></div>
+          <div class="kv highlight"><span>Projected Total Load</span><strong id="projLoad">—</strong></div>
+          <div class="dash-grid">
+            <div class="kv"><span>Target Floor</span><strong id="projFloor">—</strong></div>
+            <div class="kv"><span>Passenger Type</span><strong id="projPax">—</strong></div>
+            <div class="kv"><span>Operational Threshold</span><strong id="projThresh">—</strong></div>
+            <div class="kv"><span>Projected Margin</span><strong id="projMargin">—</strong></div>
+          </div>
+          <div class="decision" id="projDecision">—</div>
+          <div class="decision-reason" id="projReason">—</div>
+        </div>
+      </div>
+
+      <!-- RFID SECURITY & SNAPSHOT PANEL -->
+      <div class="security-card" id="rfidPanelCard">
+        <details open class="collapsible-card">
+          <summary class="card-summary">
+            <span class="card-summary-title">RC522 RFID SECURITY</span>
+            <span class="card-summary-actions" onclick="event.stopPropagation()">
+              <span id="secStatus" class="chip">READY</span>
+              <button id="btnClearRfidLog" class="btn btn-xs" type="button" title="Clear RFID Scan Logs">Clear</button>
+            </span>
+          </summary>
+
+          <div class="collapsible-body" style="margin-top: 8px;">
+            <!-- ACCESS GRANTED INLINE NOTIFICATION BOX (GREEN) -->
+            <div id="accessGrantedBox" class="access-granted-box hidden">
+              <span class="granted-badge">✅ ACCESS GRANTED</span>
+              <span id="accessGrantedMsg" class="granted-text">Authorized Card Scanned</span>
+            </div>
+
+            <div class="sec-list" id="secList">
+              <span class="hint-sm">Ready for scans. Tag 69BDF306 authorized (auto-dispatches Floor 2).</span>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- REAL-TIME EVENT LOG & REASONING TRACE -->
+      <div class="event-log-wrap" id="eventLogCard">
+        <details open class="collapsible-card">
+          <summary class="card-summary">
+            <span class="card-summary-title">System Event Log &amp; Reasoning Trace</span>
+            <span class="card-summary-actions" onclick="event.stopPropagation()">
+              <button id="btnClearLog" class="btn btn-xs" type="button">Clear</button>
+            </span>
+          </summary>
+          <div class="event-log" id="eventLog" style="margin-top: 8px;"></div>
+        </details>
+      </div>
+    </aside>
+  </div>
+
+  <!-- PASSENGER DETAILS MODAL -->
+  <div class="modal hidden" id="passengerModal">
+    <div class="modal-card">
+      <div class="modal-title">Create Passenger Request</div>
+      <div class="boarding-note">Boarding Floor: <strong>Floor <span id="modalFloor">3</span></strong> <span class="hint-sm">(locked to drop location)</span></div>
+      <form id="passengerForm">
+        <div class="form-row">
+          <label>Passenger Category</label>
+          <select id="fType">
+            <option value="adult">👨 Adult (Standard)</option>
+            <option value="child">👦 Child (Dynamic Threshold)</option>
+            <option value="luggage">🧳 Luggage</option>
+            <option value="senior">👴 Senior Citizen (High Priority)</option>
+            <option value="wheelchair">♿ Wheelchair User (Priority)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Passenger Weight (kg)</label>
+          <input id="fWeight" type="number" min="10" max="250" value="75" required />
+        </div>
+        <div class="form-row">
+          <label>Target Destination Floor</label>
+          <select id="fDestination" required></select>
+        </div>
+        <div class="form-row">
+          <label>Initial Request State</label>
+          <input type="text" value="WAITING (Pickup Requested)" disabled />
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="btnCancelModal" class="btn btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Passenger</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SECURITY ALERT POPUP MODAL -->
+  <div class="modal hidden" id="secAlertModal">
+    <div class="modal-card" style="border: 2px solid var(--danger); box-shadow: 0 0 35px rgba(239, 68, 68, 0.45); text-align: center; max-width: 380px;">
+      <div style="font-size: 44px; margin-bottom: 8px;">🚨</div>
+      <div class="modal-title" style="color: var(--danger); font-size: 20px; font-weight: 800; margin-bottom: 8px;">Security Alerted</div>
+      <p id="secAlertMsg" style="font-size: 13px; color: var(--text); line-height: 1.5; margin: 0 0 14px 0;">Unauthorized tag detected. Security personnel have been alerted.</p>
+      
+      <div id="secAlertImgWrap" class="hidden" style="margin-bottom: 14px;">
+        <img id="secAlertImg" src="" alt="Captured Security Snapshot" style="width: 100%; border-radius: 8px; border: 1px solid var(--danger); background: #000;" />
+      </div>
+
+      <div style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+        <a id="btnDownloadSecAlert" href="#" download="security_alert.jpg" class="btn btn-small btn-primary hidden" style="background: #2563eb; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">⬇ Download Frame</a>
+        <button type="button" id="btnDismissSecAlert" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger); padding: 8px 26px; font-weight: 700;">Acknowledge</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

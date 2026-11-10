@@ -1,0 +1,66 @@
+# ==========================================
+# SmartLift AI - Git Ignore
+# ==========================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# C extensions
+*.so
+
+# Python Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+*/.venv/
+*/venv/
+*/env/
+server/.venv/
+SmartLift-AI-Windows/server/.venv/
+
+# Node dependencies
+node_modules/
+*/node_modules/
+SmartLift-AI-Windows/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vite / Frontend build outputs
+dist/
+*/dist/
+dist-ssr/
+*.local
+SmartLift-AI-Windows/dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Runtime security alert captures & temporary test frames
+SmartLift-AI-Windows/server/security_images/*
+!SmartLift-AI-Windows/server/security_images/.gitkeep
+
+SmartLift-AI-Windows/new changes/data/face_crops/*
+!SmartLift-AI-Windows/new changes/data/face_crops/.gitkeep
+
+# Arduino / PlatformIO build artifacts (if generated)
+*.hex
+*.elf
+*.bin
+.arduino15/
